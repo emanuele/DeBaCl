@@ -2,7 +2,7 @@
 ## Brian P. Kent
 ## debacl.py
 ## Created: 20120821
-## Updated: 20130625
+## Updated: 20130819
 ##############################################################
 
 ##############
@@ -13,7 +13,6 @@ Main functions and classes for the DEnsity-BAsed CLustering (DeBaCl) toolbox.
 Includes functions to construct and modify level set trees produced by standard
 geometric clustering on each level. Also defines tools for interactive data
 analysis and clustering with level set trees.
-
 """
 
 try:
@@ -29,7 +28,6 @@ try:
 	import pandas as pd
 	import matplotlib.pyplot as plt
 	from matplotlib.collections import LineCollection
-	from matplotlib.widgets import Button
 except:
 	print "Matplotlib and/or Pandas packages are not installed, so plot and " +\
 		"print functions may fail."
@@ -392,7 +390,9 @@ class GeomTree(object):
 			ax2.set_yticklabels(lambda_labels)
 						
 		else:
-			raise ValueError('Plot form not understood')				
+			raise ValueError('Plot form not understood')
+
+		fig.tight_layout(pad=0.4)  # make sure the plot labels are within the plot boundary
 
 				
 		## Add the line segments
