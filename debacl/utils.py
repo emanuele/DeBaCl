@@ -1,11 +1,28 @@
-############################################
-## Brian P. Kent
-## debacl_utils.py
-## Created: 20120718
-## Updated: 20130625
-## A library of helper functions for the DEnsity-BAsed CLustering (DeBaCl)
-## package.
-###########################################
+##############################################################
+## utils.py
+## Copyright 2013 Brian P. Kent
+## This program may be distributed under the terms of the GPL-2 license.
+## DeBaCl may also be downloaded from the Python PIP installer or 
+## <https://github.com/CoAxLab/DeBaCl>; these versions may be distributed
+## under the terms of the Modified BSD license.
+##############################################################
+
+##############################################################
+# This file is part of DeBaCl.
+
+# DeBaCl is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2,
+# as published by the Free Software Foundation.
+
+# DeBaCl is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with DeBaCl.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################
+
 
 ##############
 ### SET UP ###
