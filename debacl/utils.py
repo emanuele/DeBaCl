@@ -2,7 +2,7 @@
 ## Brian P. Kent
 ## debacl_utils.py
 ## Created: 20120718
-## Updated: 20130625
+## Updated: 20130923
 ## A library of helper functions for the DEnsity-BAsed CLustering (DeBaCl)
 ## package.
 ###########################################
@@ -16,6 +16,7 @@ General utility functions for the DEnsity-BAsed CLustering (DeBaCl) toolbox.
 
 import numpy as np
 import scipy.spatial.distance as spdist
+import sklearn.neighbors as sknbr
 import scipy.special as spspec
 
 import matplotlib.pyplot as plt
@@ -76,11 +77,6 @@ def adjacencyListToEdges(neighbors, self_edge=False):
 	Returns 
 	-------
 	edge_list : list of 2-tuples
-
-	To Do 
-	-----
-	* check if empty list works for isolated vertex
-	* check if self-edge flag works
 	"""
 
 	edge_list = []
@@ -98,8 +94,11 @@ def adjacencyListToEdges(neighbors, self_edge=False):
 	return edge_list 
 
 
-def knnGraph(x, k=None, q=0.05, self_edge=False):
-	"""Compute the symmetric k-NN adjacency matrix for a set of points.
+def knnGraph(x, k=None, q=0.05, approx=True, leaf_size=30):
+	"""
+	Compute the symmetric k-NN adjacency matrix for a set of points. If approx
+	is True, this requires the scikit-learn Neighbors library. Assumes the
+	Euclidean distance metric.
 	
 	Parameters
 	----------
@@ -113,18 +112,19 @@ def knnGraph(x, k=None, q=0.05, self_edge=False):
 	q : float, optional
 		The proportion of points to use as neighbors of a given observation.
 		Defaults to 0.05.
+
+	approx : boolean, optional
+		Flag for using approximate nearest neighbors with the Scikit-Learn KD
+		Tree (the default). If False, uses the brute force method, which is
+		substantially slower and memory-intensive.
 		
-	self_edge : boolean, optional
-		Flag to include or exclude (default) self-edges. Equivalent to having
-		1's (self-edge = True) or 0's (self-edge = False) on the diagonal of the
-		adjacency matrix.
+	leaf_size : int, optional
 	
 	Returns
 	-------
-	W : 2-dimensional numpy array of booleans
-		A 2D numpy array of shape n x n, where n is the number of rows in 'x'.
-		The entry at position (i, j) is True if observations i and j are
-		neighbors, False otherwise.
+	neighbors : 2-dimensional Numpy array A 2D numpy array of shape (n, k),
+		where n is the number of rows in 'x'. The entry at position (i, j) is
+		the index of the j'th nearest neighbor to the point at index i.
 		
 	k_radius : list of float
 		For each row of 'x' the distance to its k-1'th nearest neighbor.
@@ -134,27 +134,25 @@ def knnGraph(x, k=None, q=0.05, self_edge=False):
 	if k == None:
 		k = int(round(q * n))
 
-	d = spdist.pdist(x, metric='euclidean')
-	D = spdist.squareform(d)
-			
-	## identify which indices count as neighbors for each node
-	rank = np.argsort(D, axis=1)
-	ix_nbr = rank[:, 0:k]   # should this be k+1 to match Kpotufe paper?
-	ix_row = np.tile(np.arange(n), (k, 1)).T
-	
-	## make adjacency matrix for unweighted graph
-	W = np.zeros(D.shape, dtype=np.bool)
-	W[ix_row, ix_nbr] = True
-	W = np.logical_or(W, W.T)
-	
-	if not self_edge:
-		np.fill_diagonal(W, False)
-	
-	## find the radius of the k'th neighbor
-	k_nbr = ix_nbr[:, -1]
-	k_radius = D[np.arange(n), k_nbr]
+
+	if approx:
+		kdtree = sknbr.KDTree(x, leaf_size=leaf_size, metric='euclidean')
+		distances, neighbors = kdtree.query(x, k=k, return_distance=True,
+			sort_results=True)
 		
-	return W, k_radius
+		k_radius = distances[:,-1]
+
+	else:
+		d = spdist.pdist(x, metric='euclidean')
+		D = spdist.squareform(d)
+			
+		rank = np.argsort(D, axis=1)
+		neighbors = rank[:, 0:k]
+	
+		k_nbr = neighbors[:, -1]
+		k_radius = D[np.arange(n), k_nbr]
+		
+	return neighbors, k_radius
 	
 	
 def gaussianGraph(x, sigma, self_edge=False):
