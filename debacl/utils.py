@@ -63,6 +63,41 @@ def drawSample(n, k):
 ### SIMILARITY GRAPH CONSTRUCTION ###
 #####################################
 
+def adjacencyListToEdges(neighbors, self_edge=False):
+	"""
+	Converts an adjacency list to a list of edges.
+
+	Parameters
+	----------
+	nieghbors : 2D Numpy array or a list of lists.
+
+	self_edge : boolean, optional
+
+	Returns 
+	-------
+	edge_list : list of 2-tuples
+
+	To Do 
+	-----
+	* check if empty list works for isolated vertex
+	* check if self-edge flag works
+	"""
+
+	edge_list = []
+	for i, v in enumerate(neighbors):
+		if self_edge:
+			v_incident = [tuple(sorted(x)) for x in zip((i,)*len(v), v)]
+		else:
+			v_incident = [tuple(sorted(x)) for x in zip((i,)*len(v), v) 
+				if not x[0] == x[1]]
+		edge_list.append(v_incident[:])
+
+	edge_list = [e for v in edge_list for e in v]
+	edge_list = list(set(edge_list))
+
+	return edge_list 
+
+
 def knnGraph(x, k=None, q=0.05, self_edge=False):
 	"""Compute the symmetric k-NN adjacency matrix for a set of points.
 	

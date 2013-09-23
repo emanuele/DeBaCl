@@ -1268,94 +1268,96 @@ def constructTree(neighbors, levels, bg_sets, mode='general', verbose=False):
 		See debacl.levelSetTree for class and method definitions.
 	"""
 	
-	## check for the type of 'neighbors' and find n
-	# if neighbor is a numpy array:
-	# 	n = np.alen(neighbors)
-	# else:
-	# 	n = len(neighbors)
+	## Check for the type of 'neighbors' and find n
+	try:
+		n = len(neighbors)
+	except:
+		raise TypeError("'neighbors' must a 2D Numpy array or list-like.")
+		
 
-	## convert the adjacency list to an edge list
-	# edge_list = utl.adjacencyListToEdgeList(neighbors)
-	
 	## Initialize the graph and cluster tree
-	# G = igr.Graph(n=n, edges=edge_list, directed=False,
-	# 	vertex_attrs={'index':range(n)})
+	edge_list = utl.adjacencyListToEdges(neighbors, self_edge=False)
+	
+	G = igr.Graph(n=n, edges=edge_list, directed=False,
+		vertex_attrs={'index':range(n)})
 
-	levels = [float(x) for x in levels]
+	return G
 
-	T = GeomTree(bg_sets, levels)
-	cc0 = G.components()
-	
-	if mode == 'density':
-		start_level = 0.0
-	else:
-		start_level = float(np.min(levels) - 0.000001)
-		
-	for i, c in enumerate(cc0):
-		T.subgraphs[i] = G.subgraph(c)
-		T.nodes[i] = ConnectedComponent(i, parent=None, children=[],
-			start_level=start_level, end_level=None, start_mass=0.0,
-			end_mass=None, members=G.vs[c]['index'])
-	
-	
-	# Loop through the removal grid
-	for i, (level, bg) in enumerate(zip(levels, bg_sets)):
-	
-		if verbose and i % 100 == 0:
-			print "iteration", i
-		
-		# compute mass and level
-		mass = 1.0 - (sum([x.vcount() for
-			x in T.subgraphs.itervalues()]) - len(bg)) / (1.0 * n)
+	# levels = [float(x) for x in levels]
 
-		# loop through active components, i.e. subgraphs
-		deactivate_keys = []
-		activate_subgraphs = {}
+	# T = GeomTree(bg_sets, levels)
+	# cc0 = G.components()
+	
+	# if mode == 'density':
+	# 	start_level = 0.0
+	# else:
+	# 	start_level = float(np.min(levels) - 0.000001)
 		
-		for (k, H) in T.subgraphs.iteritems():
-			cutpoints = H.vs.select(index_in = bg)
+	# for i, c in enumerate(cc0):
+	# 	T.subgraphs[i] = G.subgraph(c)
+	# 	T.nodes[i] = ConnectedComponent(i, parent=None, children=[],
+	# 		start_level=start_level, end_level=None, start_mass=0.0,
+	# 		end_mass=None, members=G.vs[c]['index'])
+	
+	
+	# # Loop through the removal grid
+	# for i, (level, bg) in enumerate(zip(levels, bg_sets)):
+	
+	# 	if verbose and i % 100 == 0:
+	# 		print "iteration", i
+		
+	# 	# compute mass and level
+	# 	mass = 1.0 - (sum([x.vcount() for
+	# 		x in T.subgraphs.itervalues()]) - len(bg)) / (1.0 * n)
+
+	# 	# loop through active components, i.e. subgraphs
+	# 	deactivate_keys = []
+	# 	activate_subgraphs = {}
+		
+	# 	for (k, H) in T.subgraphs.iteritems():
+	# 		cutpoints = H.vs.select(index_in = bg)
 			
-			if len(cutpoints) > 0:
+	# 		if len(cutpoints) > 0:
 			
-				# remove the cutpoints
-				maxdeg = cutpoints.maxdegree()
-				cutpoints.delete()
+	# 			# remove the cutpoints
+	# 			maxdeg = cutpoints.maxdegree()
+	# 			cutpoints.delete()
 		
-				# check if component has vanished
-				if H.vcount() == 0:
-					T.nodes[k].end_level = level
-					T.nodes[k].end_mass = mass
-					deactivate_keys.append(k)
+	# 			# check if component has vanished
+	# 			if H.vcount() == 0:
+	# 				T.nodes[k].end_level = level
+	# 				T.nodes[k].end_mass = mass
+	# 				deactivate_keys.append(k)
 					
-				else:
-					cc = H.components()
+	# 			else:
+	# 				cc = H.components()
 					
-					# check if component splits
-					if len(cc) > 1:
+	# 				# check if component splits
+	# 				if len(cc) > 1:
 						
-						# retire the parent component			
-						deactivate_keys.append(k)
-						T.nodes[k].end_level = level
-						T.nodes[k].end_mass = mass
+	# 					# retire the parent component			
+	# 					deactivate_keys.append(k)
+	# 					T.nodes[k].end_level = level
+	# 					T.nodes[k].end_mass = mass
 						
-						# start a new component for each child
-						for c in cc:
-							new_key = max(T.nodes.keys()) + 1
-							T.nodes[k].children.append(new_key)
-							activate_subgraphs[new_key] = H.subgraph(c)
+	# 					# start a new component for each child
+	# 					for c in cc:
+	# 						new_key = max(T.nodes.keys()) + 1
+	# 						T.nodes[k].children.append(new_key)
+	# 						activate_subgraphs[new_key] = H.subgraph(c)
 						
-							T.nodes[new_key] = ConnectedComponent(new_key,
-								parent=k, children=[], start_level=level,
-								end_level=None, start_mass=mass, end_mass=None,
-								members=H.vs[c]['index'])
+	# 						T.nodes[new_key] = ConnectedComponent(new_key,
+	# 							parent=k, children=[], start_level=level,
+	# 							end_level=None, start_mass=mass, end_mass=None,
+	# 							members=H.vs[c]['index'])
 											
-		# update active components
-		for k in deactivate_keys:
-			del T.subgraphs[k]
+	# 	# update active components
+	# 	for k in deactivate_keys:
+	# 		del T.subgraphs[k]
 			
-		T.subgraphs.update(activate_subgraphs)
+	# 	T.subgraphs.update(activate_subgraphs)
 		
-	return T
+	# return T
 
 
 def loadTree(fname):
